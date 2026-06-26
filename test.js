@@ -33,20 +33,55 @@
         });
     })();
 
-    /* скролл */
     (function initSmoothScroll() {
+        // Функция для очень плавного скролла
+        function smoothScrollTo(targetPosition, duration) {
+            duration = duration || 800;
+            var startPosition = window.pageYOffset;
+            var distance = targetPosition - startPosition;
+            var startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                var timeElapsed = currentTime - startTime;
+                var progress = Math.min(timeElapsed / duration, 1);
+
+
+                var ease = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                window.scrollTo(0, startPosition + distance * ease);
+
+                if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                }
+            }
+
+            requestAnimationFrame(animation);
+        }
+
         var triggers = document.querySelectorAll('[data-scroll]');
 
         triggers.forEach(function (el) {
             el.addEventListener('click', function (event) {
+                event.preventDefault();
+
                 var targetSelector = el.dataset.target || el.getAttribute('href');
                 if (!targetSelector || targetSelector.charAt(0) !== '#') return;
 
                 var target = document.querySelector(targetSelector);
                 if (!target) return;
 
-                event.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Вычисляем высоту шапки
+                var header = document.querySelector('.header');
+                var headerHeight = header ? header.offsetHeight : 0;
+
+
+                var targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+
+
+                smoothScrollTo(targetPosition, 900);
             });
         });
     })();
